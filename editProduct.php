@@ -3,7 +3,7 @@
 session_start();
 include ('navigation.php');
 
-include ('auth/connection.php');
+
 $m='';
 
 $conn= connect();

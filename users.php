@@ -5,10 +5,10 @@ session_start();
 
 include ('navigation.php');
 
-include ('auth/connection.php');
+
 $m='';
 
-$id = $_SESSION['userid'];
+$id =   $_SESSION['userid'];
 
 $conn= connect();
 
@@ -54,50 +54,67 @@ $available_stock = $total_bought['total_bought']-$total_sold['total_sold'];
 
 // show old information
 
-$sql= "select * from users_info where id=17";
+$sql= "select * from users_info where id='$id'";
 $thisUser= mysqli_fetch_assoc($conn->query($sql));
 
-
-if(isset($_POST['submit'])){  // modal update info
-
-    $user_name = $_POST['uname'];
-
-    $email = $_POST['email'];
-
-    $ava = $_POST['uavtr'];
-
-    $old_pass = $_POST['pass'];
-
-    $new_pass = $_POST['npass'];
-
-    $new_con_pass = $_POST['cpass'];
-
-    $id = $_SESSION['userid'];
-
-    $sql = "select * from users_info where u_name= '$abc'  ";  // where is the problem
-
-
-
-     $res= $conn->query($sql);
-
-     if(mysqli_num_rows($res)==1){
-
-         header('location:login.php');
-
-          if((strtoint($new_pass))== (strtoint($new_con_pass))){
-
-
-
-          }
-
-     }
-     else{
-
-        echo "the id is".$id;
-     }
-
-
-
+if(isset($_POST['submit'])){
+    if($thisUser['password']==$_POST['pass']){
+        $sq= "UPDATE users_info SET ";
+        if(isset($_POST['uname'])){
+            $uName= $_POST['uname'];
+            if($uName!= $thisUser['name']){
+                $sq .= "name = '$uName',";
+            }
+        }
+        if(isset($_POST['email'])){
+            $uEmail= $_POST['email'];
+            if($uName!= $thisUser['email']){
+                $sq .= "email = '$uEmail',";
+            }
+        }
+        if(isset($_FILES['uavtr'])){
+            $tmpName= $_FILES['uavtr']['tmp_name'];
+            $uAvtr= $_FILES['uavtr']['name'];
+            $size= $_FILES['uavtr']['size'];
+            if($size<3000000){
+                $format= explode('.', $uAvtr);
+                $actualName= strtolower($format[0]);
+                $actualFormat= strtolower($format[1]);
+                $allowedFormat= ['jpeg', 'jpg', 'png', 'gif'];
+                $location = 'Users/'.$actualName.'.'.$actualFormat;
+                if($actualFormat=='jpg'||$actualFormat=='jpeg'){
+                    $img= imagecreatefromjpeg($tmpName);
+                    $resizedImage= imagescale($img, 300,200);
+                    imagejpeg($resizedImage,$location,-1);
+                } elseif($actualFormat=='png'){
+                    $img= imagecreatefrompng($tmpName);
+                    $resizedImage= imagescale($img, 300,200);
+                    imagepng($resizedImage,$location,-1);
+                } elseif($actualFormat=='gif'){
+                    $img= imagecreatefromgif($tmpName);
+                    $resizedImage= imagescale($img, 300,200);
+                    imagegif($resizedImage,$location,-1);
+                }
+                $sq .="avatar='$location',";
+            } else{
+                $m= "Image size should be less than 3MB";
+            }
+        }
+        if(isset($_POST['npass'])&& $_POST['npass']!=''&& isset($_POST['cpass'])&& $_POST['cpass']!=''){
+            if($_POST['npass']==$_POST['cpass']){
+                $pass= $_POST['npass'];
+                if($pass!=$thisUser['password']){
+                    $sq .="password= '$pass',";
+                }
+            }
+        }
+        $sq= substr($sq, 0,-1);
+        $sq .=" WHERE id='$id'";
+        $conn->query($sq);
+        $m= 'Users Information Successfully Updated!';
+    } else{
+        $m= "Credentials mismatch!";
+    }
 }
 
 
@@ -161,6 +178,7 @@ if(isset($_POST['submit'])){  // modal update info
                     Update Your Info
                 </button>
                 <h1><?php echo $m;?></h1>
+
                 <div class="modal fade" id="addProduct" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-scrollable" role="document">
                         <div class="modal-content">

@@ -3,7 +3,7 @@
    session_start();
 
    $_SESSION['user']='';
-   $_SESSION['userid']='';
+  // $_SESSION['userid']='';
 
 include "auth/connection.php";
 $m='';
@@ -32,7 +32,7 @@ if(isset($_POST['submit'])){
 
         $_SESSION['user']=$user['name'];
 
-        $_SESSION['userid']=$user['íd'];
+        $_SESSION['userid']=$user['id'];
 
         header('location:dashboard.php');
     }
